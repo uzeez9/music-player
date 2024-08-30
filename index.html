@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mobile Music App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="screen1" class="screen active">
+        <button class="skip-button">Skip</button>
+        <div class="headphones"></div>
+        <h1 class="app-title">ZEEZ PLAYER</h1>
+        <p class="app-description">MAD JAMS!</p>
+        <div class="progress-dots">
+            <div class="dot active"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <div id="screen2" class="screen">
+        <div class="artist-card">
+            <div class="artist-info">
+                <div class="artist-name">Burna Boy</div>
+                <div class="stream-count">1,322,799,000 Streams</div>
+            </div>
+            <button class="follow-button">Follow +</button>
+        </div>
+        <div class="section-title">
+            Top Mix <a href="#" class="see-all">See all</a>
+        </div>
+        <div class="mix-container">
+            <div class="mix-item">
+                <img src="/assets1/images/beninboys123.png" alt="Benin Boys">
+                <div class="mix-title">Benin Boys</div>
+            </div>
+            <div class="mix-item">
+                <img src="/assets1/images/stubborn123.png" alt="Stubborn">
+                <div class="mix-title">Stubborn</div>
+            </div>
+        </div>
+        <div class="section-title">
+            Recently Played <a href="#" class="see-all">See all</a>
+        </div>
+        <div class="track" onclick="playTrack('Kante', 'Davido ft Fave', '/assets1/music/spotifydown.com - KANTE (feat. Fave).mp3', '/assets1/images/kante.png')">
+            <img src="/assets1/images/kante.png" alt="Kante">
+            <div class="track-info">
+                <p class="track-name">Kante</p>
+                <p class="track-artist">Davido ft Fave</p>
+            </div>
+        </div>
+        <div class="track" onclick="playTrack('Normal', 'Burna Boy', '/assets1/music/spotifydown.com - Normal.mp3', '/assets1/images/normal123.png')">
+            <img src="/assets1/images/normal123.png" alt="Normal">
+            <div class="track-info">
+                <p class="track-name">Normal</p>
+                <p class="track-artist">Burna Boy</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen3" class="screen">
+        <div class="now-playing">
+            <img class="album-art" src="" alt="Album Art">
+            <div class="song-info">
+                <h2 class="song-title"></h2>
+                <p class="song-artist"></p>
+            </div>
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
+            <div class="time-info">
+                <span class="current-time">0:00</span>
+                <span class="total-time">0:00</span>
+            </div>
+            <div class="player-controls">
+                <button class="shuffle">🔀</button>
+                <button class="previous">⏮</button>
+                <button class="play-pause">⏯</button>
+                <button class="next">⏭</button>
+                <button class="repeat">🔁</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer"></audio>
+
+    <script>
+        let currentScreen = 1;
+        const screens = document.querySelectorAll('.screen');
+        let isPlaying = false;
+        let timer;
+
+        function showScreen(screenNumber) {
+            screens.forEach(screen => screen.classList.remove('active'));
+            document.getElementById(`screen${screenNumber}`).classList.add('active');
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateProgress() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const progressBar = document.querySelector('.progress');
+            const currentTimeSpan = document.querySelector('.current-time');
+            const totalTimeSpan = document.querySelector('.total-time');
+            const totalTime = audioPlayer.duration || 0;
+
+            if (totalTime) {
+                const currentTime = audioPlayer.currentTime;
+                progressBar.style.width = `${(currentTime / totalTime) * 100}%`;
+                currentTimeSpan.textContent = formatTime(currentTime);
+                totalTimeSpan.textContent = formatTime(totalTime);
+            }
+        }
+
+        function playTrack(title, artist, src, albumArt) {
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.src = src;
+            document.querySelector('.song-title').textContent = title;
+            document.querySelector('.song-artist').textContent = artist;
+            document.querySelector('.album-art').src = albumArt; 
+            showScreen(3);
+            audioPlayer.play();
+            isPlaying = true;
+            document.querySelector('.play-pause').textContent = '⏸️';
+            audioPlayer.addEventListener('timeupdate', updateProgress);
+            audioPlayer.addEventListener('ended', () => {
+                document.querySelector('.play-pause').textContent = '▶️';
+                isPlaying = false;
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.skip-button') && !e.target.closest('.follow-button') && !e.target.closest('.player-controls') && !e.target.closest('.progress-bar')) {
+                currentScreen = (currentScreen % 3) + 1;
+                showScreen(currentScreen);
+            }
+        });
+
+        document.querySelector('.skip-button').addEventListener('click', (e) => {
+            e.stopPropagation();
+            showScreen(2);
+        });
+
+        document.querySelector('.follow-button').addEventListener('click', function() {
+            this.textContent = this.textContent === 'Follow +' ? 'Following' : 'Follow +';
+        });
+
+        document.querySelector('.play-pause').addEventListener('click', function() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            isPlaying = !isPlaying;
+            this.textContent = isPlaying ? '⏸️' : '▶️';
+            if (isPlaying) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+        });
+
+        document.querySelector('.progress-bar').addEventListener('click', function(e) {
+            const clickPosition = e.offsetX / this.offsetWidth;
+            const audioPlayer = document.getElementById('audioPlayer');
+            audioPlayer.currentTime = clickPosition * audioPlayer.duration;
+            updateProgress();
+        });
+
+        document.querySelector('.shuffle').addEventListener('click', function() {
+            this.style.color = this.style.color === 'rgb(29, 185, 84)' ? 'white' : 'rgb(29, 185, 84)';
+        });
+
+        document.querySelector('.repeat').addEventListener('click', function() {
+            this.style.color = this.style.color === 'rgb(29, 185, 84)' ? 'white' : 'rgb(29, 185, 84)';
+        });
+    </script>
+</body>
+</html>
